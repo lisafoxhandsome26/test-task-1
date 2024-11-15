@@ -1,4 +1,5 @@
-from pydantic_settings import BaseSettings
+from pydantic import ConfigDict
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -11,8 +12,7 @@ class Settings(BaseSettings):
     DB_PASS: str
     DB_NAME: str
 
-    class Config:
-        env_file = "C:/Users/Пользователь/PycharmProjects/test-task-1/.env"
+    model_config = SettingsConfigDict(env_file="C:/Users/Пользователь/PycharmProjects/test-task-1/.env")
 
     @property
     def database_url(self):
@@ -22,5 +22,6 @@ class Settings(BaseSettings):
     # def database_url_sync(self):
     #     return f"postgresql+psycopg2://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
 
+#ConfigDict["env_file"] = "C:/Users/Пользователь/PycharmProjects/test-task-1/.env"
 
 env = Settings()

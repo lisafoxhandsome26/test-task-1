@@ -39,7 +39,8 @@ async def post_deposit(request: Request, WALLET_UUID: int, data=Body()):
     if deposit:
         if deposit.deposit < amount and operationType == "WITHDRAW":
             context["error"] = "Error Your deposit is Null or we try to withdraw more then required"
-            return templates.TemplateResponse("post_deposit.html", context)
+            #return templates.TemplateResponse("post_deposit.html", context)
+            return "Error Your deposit is Null or we try to withdraw more then required"
 
         if operationType == "DEPOSIT":
             await queries.increase_deposit(WALLET_UUID, amount)
