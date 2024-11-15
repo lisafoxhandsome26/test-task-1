@@ -16,9 +16,11 @@ async def get_balance_wallet(request: Request, WALLET_UUID: int):
     if deposit:
         context["wallet"] = WALLET_UUID
         context["deposit"] = deposit.deposit
-        return templates.TemplateResponse("get_wallet.html", context)
+        #return templates.TemplateResponse("get_wallet.html", context)
+        return f"Your balance { deposit.deposit }"
 
-    return templates.TemplateResponse("get_wallet.html", context=context)
+    #return templates.TemplateResponse("get_wallet.html", context=context)
+    return "Your wallet das not exists"
 
 
 @router.post("/{WALLET_UUID}/operation/")
@@ -30,7 +32,8 @@ async def post_deposit(request: Request, WALLET_UUID: int, data=Body()):
     result = validation_json(operationType, amount)
     if result:
         context["error"] = f"Error {result['Error']}"
-        return templates.TemplateResponse("post_deposit.html", context)
+        #return templates.TemplateResponse("post_deposit.html", context)
+        return f"Error {result['Error']}"
 
     deposit = await queries.get_wallet_by_uuid(WALLET_UUID)
     if deposit:
@@ -45,11 +48,15 @@ async def post_deposit(request: Request, WALLET_UUID: int, data=Body()):
         elif operationType == "WITHDRAW":
             await queries.reduce_deposit(WALLET_UUID, amount)
             context["message"] = f"Deposit was reduce to {amount}"
+
         else:
             context["message"] = "No known operation Type"
     else:
         context["message"] = "Your wallet das not exists"
 
-    return templates.TemplateResponse("post_deposit.html", context)
+    #return templates.TemplateResponse("post_deposit.html", context)
+    return context["message"]
 
-
+# Развернуть в docker-compose все
+# Прописать тесты
+# Подключить миграции
