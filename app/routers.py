@@ -1,46 +1,55 @@
-from fastapi import APIRouter, Body
-
+from fastapi import APIRouter, Body, Request
+from fastapi.templating import Jinja2Templates
 from database import queries
+from .validators import validation_json
+from fastapi.responses import HTMLResponse
 
 router = APIRouter(prefix="/api/v1/wallets")
+templates = Jinja2Templates(directory="templates")
 
 
-def validation_json(operationType: str, amount: int) -> dict:
-    if operationType is None or amount is None:
-        return {"Error": "The parameters do not exist or are not written correctly"}
-
-    if operationType and amount:
-        if not isinstance(operationType, str):
-            return {"Error": "OperationType mast be STRING"}
-        if not isinstance(amount, int):
-            return {"Error": "Amount mast be INTEGER"}
-
-
-@router.get("/{WALLET_UUID}/")
-async def get_balance_wallet(WALLET_UUID: int):
+@router.get("/{WALLET_UUID}/", response_class=HTMLResponse)
+async def get_balance_wallet(request: Request, WALLET_UUID: int):
     deposit = await queries.get_wallet_by_uuid(WALLET_UUID)
+    context = {"request": request}
 
     if deposit:
-        return f"<h2>Your balance is {WALLET_UUID} - {deposit.deposit}</h2>"
+        context["wallet"] = WALLET_UUID
+        context["deposit"] = deposit.deposit
+        return templates.TemplateResponse("get_wallet.html", context)
 
-    return "<h2>Your wallet das not exists</h2>"
+    return templates.TemplateResponse("get_wallet.html", context=context)
 
 
 @router.post("/{WALLET_UUID}/operation/")
-async def post_deposit(WALLET_UUID: int, data=Body()):
+async def post_deposit(request: Request, WALLET_UUID: int, data=Body()):
     operationType = data.get("operationType", None)
     amount = data.get("amount", None)
+    context = {"request": request}
 
     result = validation_json(operationType, amount)
     if result:
-        return f"Error {result['error']}"
+        context["error"] = f"Error {result['Error']}"
+        return templates.TemplateResponse("post_deposit.html", context)
 
-    if WALLET_UUID == 123:
+    deposit = await queries.get_wallet_by_uuid(WALLET_UUID)
+    if deposit:
+        if deposit.deposit < amount and operationType == "WITHDRAW":
+            context["error"] = "Error Your deposit is Null or we try to withdraw more then required"
+            return templates.TemplateResponse("post_deposit.html", context)
+
         if operationType == "DEPOSIT":
-            return f"Deposit was posted to {amount}"
+            await queries.increase_deposit(WALLET_UUID, amount)
+            context["message"] = f"Deposit was increase to {amount}"
+
         elif operationType == "WITHDRAW":
-            return f"Deposit was deleted to {amount}"
+            await queries.reduce_deposit(WALLET_UUID, amount)
+            context["message"] = f"Deposit was reduce to {amount}"
         else:
-            return "No known operation Type"
+            context["message"] = "No known operation Type"
     else:
-        return "Your wallet das not exists"
+        context["message"] = "Your wallet das not exists"
+
+    return templates.TemplateResponse("post_deposit.html", context)
+
+
