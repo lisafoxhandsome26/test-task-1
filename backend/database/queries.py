@@ -25,11 +25,11 @@ async def reduce_deposit(uuid: int, amount: int) -> None:
         await sos.commit()
 
 
-async def run_create_tables():
-    async with engine.begin() as conn:
-        # Создаем все таблицы
-        await conn.run_sync(Base.metadata.drop_all)
-        await conn.run_sync(Base.metadata.create_all)
+# async def run_create_tables():
+#     async with engine.begin() as conn:
+#         # Создаем все таблицы
+#         await conn.run_sync(Base.metadata.drop_all)
+        #await conn.run_sync(Base.metadata.create_all)
 
 
 

@@ -2,10 +2,9 @@ import pytest
 
 from database import queries
 
-
 data_for_test = [
-    (123, "Your balance"),
-    (12, "Your wallet das not exists")
+    (123, {"deposit": 0, "wallet": 123}),
+    (12, {"message": "Your wallet das not exists"})
 ]
 
 
@@ -16,7 +15,7 @@ data_for_test = [
 async def test_get_balance(ac, uuid, result):
     response = await ac.get(f"/api/v1/wallets/{uuid}/")
     assert response.status_code == 200
-    assert result in response.text
+    assert result == response.json()
 
 
 data_for_test_bad = [
@@ -37,7 +36,11 @@ data_for_test_bad = [
     )
 async def test_post_deposit_bad_json(ac, uuid, json_data, result):
     response = await ac.post(f"/api/v1/wallets/{uuid}/operation/", json=json_data)
-    assert result in response.text
+    error = response.json().get("error")
+    if error:
+        assert result in error
+    else:
+        assert result in response.json().get("message")
 
 
 data_for_test_good = [
@@ -56,4 +59,8 @@ async def test_post_deposit_good_json(ac, uuid, json_data, result_db, resp):
     response = await ac.post(f"/api/v1/wallets/{uuid}/operation/", json=json_data)
     deposit = await queries.get_wallet_by_uuid(uuid)
     assert result_db == int(deposit.deposit)
-    assert resp in response.text
+    error = response.json().get("error")
+    if error:
+        assert resp in error
+    else:
+        assert resp in response.json().get("message")
