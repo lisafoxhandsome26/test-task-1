@@ -1,7 +1,6 @@
 from sqlalchemy import select, update
-from asyncio import run
-from .models import AccountUser, Base
-from .core import session, engine
+from .models import AccountUser
+from .core import session
 
 
 async def get_wallet_by_uuid(uuid: int) -> AccountUser:
@@ -23,14 +22,3 @@ async def reduce_deposit(uuid: int, amount: int) -> None:
     async with session() as sos:
         await sos.execute(stm)
         await sos.commit()
-
-
-# async def run_create_tables():
-#     async with engine.begin() as conn:
-#         # Создаем все таблицы
-#         await conn.run_sync(Base.metadata.drop_all)
-        #await conn.run_sync(Base.metadata.create_all)
-
-
-
-#run(run_create_tables())

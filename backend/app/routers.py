@@ -43,6 +43,3 @@ async def post_deposit(WALLET_UUID: int, data=Body()):
         message = "Your wallet das not exists"
 
     return JSONResponse({"message": message})
-
-# Развернуть в docker-compose все
-# Подключить миграции
